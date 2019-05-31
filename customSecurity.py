@@ -6,10 +6,20 @@ from flask_appbuilder.security.manager import BaseSecurityManager
 from flask_login import login_user, logout_user
 from superset import config 
 import sqlalchemy as db
-import psycopg2
-import ast
-import os
 import base64
+
+def isBase64(sb):
+    try:
+        if type(sb) == str:
+            # If there's any unicode here, an exception will be thrown and the function will return false
+            sb_bytes = bytes(sb, 'ascii')
+        elif type(sb) == bytes:
+            sb_bytes = sb
+        else:
+            raise ValueError("Argument must be string or bytes")                
+        return base64.b64encode(base64.b64decode(sb_bytes)) == sb_bytes
+    except Exception:
+        return False
 
 def tokenDigest (token, b64redir):
 
@@ -26,12 +36,20 @@ def tokenDigest (token, b64redir):
 
     print(data)
 
-    # Query Result Digest
-    userInfo={}
-    userInfo['user']=data[0][0]
-    userInfo['redirect']=str(base64.urlsafe_b64decode(data[0][2]), 'utf-8')
+    checkUrl64 = isBase64(b64redir)
 
-    return userInfo
+    # Query Result Digest
+    if len(data) > 0:
+        userInfo={}
+        userInfo['user']=data[0][0]
+        if checkUrl64:
+            userInfo['redirect']=str(base64.urlsafe_b64decode(data[0][2]), 'utf-8')
+        else:
+            userInfo['redirect']=b64redir
+        
+        return userInfo
+    else: 
+        return {}
 
 class CustomAuthDBView(AuthDBView):
     login_template = 'appbuilder/general/security/login_db.html'    
@@ -40,21 +58,39 @@ class CustomAuthDBView(AuthDBView):
     def login(self):   
 
         redirect_url = self.appbuilder.get_url_for_index
-
+        #Get Params
         token = request.args.get('token')
-        b64redir = request.args.get('redirect')        
+        b64redir = request.args.get('redirect')
+        
+        # Check authentication for older versions
+        if "0.28." in str(config.VERSION_STRING):
+            authenticated = g.user.is_authenticated
+        else:
+            authenticated = g.user.is_authenticated()
 
+        if b64redir is None:
+            b64redir = b'/superset/welcome'
+
+        # Login in first time
         if b64redir is not None and token is not None:
-            authDict = tokenDigest(token, request.args.get('redirect'))
-            user = self.appbuilder.sm.find_user(username=authDict['user'])
-            if user is not None:
-                login_user(user, remember=False)
-                return redirect(authDict['redirect'])
+            authDict = tokenDigest(token, b64redir)
+            if 'user' in authDict:
+                user = self.appbuilder.sm.find_user(username=authDict['user'])
+                if user is not None:
+                    login_user(user, remember=False)
+                    return redirect(authDict['redirect'])
+                else:
+                    flash('Wrong user or user not found!', 'warning')
+                    return super(CustomAuthDBView,self).login()
             else:
-                flash('Wrong user or user not found!', 'warning')
+                flash('Invalid Token', 'warning')
                 return super(CustomAuthDBView,self).login()
-        elif g.user is not None and g.user.is_authenticated():
+        
+        # User already loged in case
+        
+        elif g.user is not None and authenticated:
             return redirect(redirect_url)
+        # Token not found or not passed as a param
         else:
             flash('Unable to auto login - no token found!', 'warning')
             return super(CustomAuthDBView,self).login()
