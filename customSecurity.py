@@ -34,16 +34,16 @@ def tokenDigest (token, b64redir):
 
     data = connection.execute(queryDB).fetchall()
 
-    print(data)
+    # Query Response - Digest
+    username = data[0][0]
+    encodedURL = data[0][2]
 
-    checkUrl64 = isBase64(b64redir)
-
-    # Query Result Digest
     if len(data) > 0:
         userInfo={}
-        userInfo['user']=data[0][0]
+        userInfo['user']=username
+        checkUrl64 = isBase64(b64redir)
         if checkUrl64:
-            userInfo['redirect']=str(base64.urlsafe_b64decode(data[0][2]), 'utf-8')
+            userInfo['redirect']=str(base64.urlsafe_b64decode(encodedURL), 'utf-8')
         else:
             userInfo['redirect']=b64redir
         
@@ -51,7 +51,7 @@ def tokenDigest (token, b64redir):
     else: 
         return {}
 
-class CustomAuthDBView(AuthDBView):
+class CustomJWTAuthView(AuthDBView):
     login_template = 'appbuilder/general/security/login_db.html'    
 
     @expose('/login/sso', methods=['GET', 'POST'])
@@ -81,10 +81,10 @@ class CustomAuthDBView(AuthDBView):
                     return redirect(authDict['redirect'])
                 else:
                     flash('Wrong user or user not found!', 'warning')
-                    return super(CustomAuthDBView,self).login()
+                    return super(CustomJWTAuthView,self).login()
             else:
                 flash('Invalid Token', 'warning')
-                return super(CustomAuthDBView,self).login()
+                return super(CustomJWTAuthView,self).login()
         
         # User already loged in case
         
@@ -93,9 +93,9 @@ class CustomAuthDBView(AuthDBView):
         # Token not found or not passed as a param
         else:
             flash('Unable to auto login - no token found!', 'warning')
-            return super(CustomAuthDBView,self).login()
+            return super(CustomJWTAuthView,self).login()
 
 class CustomSecurityManager(SupersetSecurityManager):
-    authdbview = CustomAuthDBView
+    authdbview = CustomJWTAuthView
     def __init__(self, appbuilder):
         super(CustomSecurityManager, self).__init__(appbuilder)
