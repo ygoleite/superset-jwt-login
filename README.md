@@ -27,6 +27,8 @@ Simple implementation for login using JWT on Superset
     ```
 - In the chosen database execute the create statement, locate in file `jwt_ddl_model.sql`
 
+- Restart superset and access our endpoint to login `/login/sso?token=<my-token>&redirect=<str-64-encoded>`
+
 ---
 ##### ATTENTION
 > Only tested for versions 0.28.1 and 0.25.6
