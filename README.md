@@ -15,7 +15,7 @@ Simple implementation for login using JWT on Superset
 
     # Custom JWT configuration
     JWT_POSTGRESBASE = 'postgresql+psycopg2://{0}:{1}@{2}:{3}/{4}'
-
+    # See https://docs.sqlalchemy.org/en/13/core/engines.html
     JWT_CONNECTION_STRING = 'postgresql+psycopg2://{0}:{1}@{2}:{3}/{4}'
     JWT_HOST = '127.0.0.1'
     JWT_PORT = '5432'
@@ -26,6 +26,8 @@ Simple implementation for login using JWT on Superset
 
     ```
 - In the chosen database execute the create statement, locate in file `jwt_ddl_model.sql`
+
+- Restart superset and access our endpoint to login `/login/sso?token=<my-token>&redirect=<str-64-encoded>`
 
 ---
 ##### ATTENTION

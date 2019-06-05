@@ -125,6 +125,8 @@ CUSTOM_SECURITY_MANAGER = CustomSecurityManager
 AUTH_TYPE = AUTH_DB
 
 # Custom JWT configuration
+# See https://docs.sqlalchemy.org/en/13/core/engines.html
+# to put correct connection string
 JWT_CONNECTION_STRING = 'postgresql+psycopg2://{0}:{1}@{2}:{3}/{4}'
 JWT_HOST = '127.0.0.1'
 JWT_PORT = '5432'
