@@ -38,6 +38,7 @@ def tokenDigest (token, b64redir):
     username = data[0][0]
     encodedURL = data[0][2]
 
+
     if len(data) > 0:
         userInfo={}
         userInfo['user']=username
@@ -46,7 +47,8 @@ def tokenDigest (token, b64redir):
             userInfo['redirect']=str(base64.urlsafe_b64decode(encodedURL), 'utf-8')
         else:
             userInfo['redirect']=b64redir
-        
+        # Token Destroy
+        connection.execute(db.delete(jwt_table).where(jwt_table.columns.token == token))
         return userInfo
     else: 
         return {}

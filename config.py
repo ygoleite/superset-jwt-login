@@ -50,7 +50,7 @@ SUPERSET_WEBSERVER_ADDRESS = '0.0.0.0'
 SUPERSET_WEBSERVER_PORT = 8088
 SUPERSET_WEBSERVER_TIMEOUT = 60  # deprecated
 EMAIL_NOTIFICATIONS = False
-CUSTOM_SECURITY_MANAGER = None
+#CUSTOM_SECURITY_MANAGER = None
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 # ---------------------------------------------------------
 
@@ -125,14 +125,12 @@ CUSTOM_SECURITY_MANAGER = CustomSecurityManager
 AUTH_TYPE = AUTH_DB
 
 # Custom JWT configuration
-JWT_POSTGRESBASE = 'postgresql+psycopg2://{0}:{1}@{2}:{3}/{4}'
-
 JWT_CONNECTION_STRING = 'postgresql+psycopg2://{0}:{1}@{2}:{3}/{4}'
 JWT_HOST = '127.0.0.1'
 JWT_PORT = '5432'
 JWT_DB = 'postgres'
 JWT_DB_USER = 'postgres'
-JWT_DB_PASS = 'oncase12'
+JWT_DB_PASS = 'postgres'
 JWT_TABLE = 'sso_sset'
 
 # Uncomment to setup Full admin role name
